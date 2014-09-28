@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html >
+    <head>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+        </script>
+        <!-- MEGAFOLIO PRO GALLERY CSS SETTINGS -->
+
+        <link rel="stylesheet" type="text/css" href="css/settings.css" media="screen" />
+        <!-- MEGAFOLIO PRO GALLERY JS FILES -->
+        <script type="text/javascript" src="js/jquery.themepunch.plugins.min.js"></script>
+        <script type="text/javascript" src="js/jquery.themepunch.megafoliopro.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+        <script src="app.js"></script>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body >
+        <div class="ajax-loading" style="display:none;"><div></div></div>
+        <br>
+        <div class="container">            
+            <input type="range" id='year' min="1930" max="2014">
+            <label id='label'></label>
+            <div class="megafolio-container">
+
+
+
+
+
+            </div>
+        </div>
+        <button id='1'>button</button>
+
+        <script type="text/javascript">
+            jQuery(document).ready(function() {
+
+
+
+                var displayOverlay = false;
+
+                $('body').children().ajaxStart(function() {
+                    if (displayOverlay) {
+                        $('.ajax-loading').show();
+                    }
+                });
+
+                $('body').children().ajaxStop(function() {
+                    displayOverlay = false;
+                    $('.ajax-loading').hide();
+                });
+                var instagram = {
+                    clientID: '6bcadf7016694ec7a8da9139c7918c8a',
+                    apiHost: 'https://api.instagram.com'
+                };
+                $('#year').val("2013");
+                console.log($("input[type=range]").val());
+                var min = ""
+                var change = false;
+
+                function bing(year) {
+                    displayOverlay = true;
+                    var url = "https://api.datamarket.azure.com/Bing/Search/v1/Image?Query=%27athens%27%27" + year + "%27";
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        dataType: "json",
+                        headers: {
+                            "Authorization": "Basic OmpKYlNud2FXK2VIcVZnQXhrZzJoMHgyaEp6U0MwOWxqMHFJRG9BbW9jaVE="
+                        }
+                    }).done(function(data) {
+                        console.log(data.d.results);
+                        putPhotos(data.d.results);
+                    });
+                }
+                bing(2014);
+                function loadInstagram(year) {
+                    var s = {
+                        finishedMsg: 'No more pages to load.',
+                        img: 'http://i.imgur.com/qkKy8.gif'
+                    };
+                    displayOverlay = true;
+                    console.log(year);
+                    //Get Data From Instagram
+                    $.ajax({
+                        type: "GET",
+                        url: instagram.apiHost + "/v1/tags/" + year + "/media/recent",
+                        data: {'client_id': instagram.clientID, 'max_tag_id': min},
+                        dataType: "jsonp"
+
+                    }).done(function(photos) {
+                        console.log(photos);
+
+                        if (change) {
+                            $('.megafolio-container').html("");
+                            $('.megafolio-container').append('<div><img src="http://i.imgur.com/qkKy8.gif"></div>');
+                        }
+                        //putData(photos.data);
+                    })
+                }
+
+                var putPhotos = function(photos) {
+
+                    for (i = 0; i < photos.length; i++) {
+
+                        // var img = photos[i].images.low_resolution.url;
+                        function UrlExists(url) {
+                            $('<img src="' + url + '">').load(function() {
+                                return true;
+                            }).bind('error', function() {
+                                return false;
+                            });
+                        }
+
+                        var img = photos[i].MediaUrl;
+                        var id = photos[i].id;
+
+                        $('.megafolio-container').append("<div class='mega-entry' data-src='" + img + "'  ></div>");
+
+                    }
+                    var api = jQuery('.megafolio-container').megafoliopro({});
+                    api.megaremix([0]);
+                };
+
+
+                $("input[type=range]").on('change', function() {
+                    console.log($(this).val());
+                    change = true;
+                    loadInstagram($(this).val());
+                    bing($(this).val());
+                    $('#label').val($(this).val());
+
+                });
+
+
+
+                loadInstagram(2014);
+
+
+            });
+        </script>
+    </body>
+</html>
